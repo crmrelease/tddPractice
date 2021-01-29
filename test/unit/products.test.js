@@ -9,7 +9,7 @@ productModel.findById = jest.fn();
 
 //mock함수 생성
 let req, res, next;
-const productId = "60136c80d8294410e043a3cc";
+const productId = "60136c80d8294410e043a3ee";
 beforeEach(() => {
   req = httpMocks.createRequest();
   res = httpMocks.createResponse();
@@ -89,6 +89,7 @@ describe("Product Controller read 테스트", () => {
 
   it("product findbyId 테스트", async () => {
     req.params.productId = productId;
+    productModel.findById.mockReturnValue(testProduct);
     await productController.getProductsById(req, res, next);
     expect(res.statusCode).toBe(201);
     expect(productModel.findById).toBeCalledWith(productId);

@@ -21,6 +21,7 @@ exports.getProducts = async (req, res, next) => {
 
 exports.getProductsById = async (req, res, next) => {
   try {
+    console.log(req.params.productId);
     const gotProductsById = await productModel.findById(req.params.productId);
     if (gotProductsById) {
       res.status(201).json(gotProductsById);
