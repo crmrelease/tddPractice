@@ -4,9 +4,12 @@ const httpMocks = require("node-mocks-http");
 const testProduct = require("../testData/new-product.json");
 
 productModel.create = jest.fn();
+productModel.find = jest.fn();
+productModel.findById = jest.fn();
+
 //mock함수 생성
 let req, res, next;
-
+const productId = "60136c80d8294410e043a3cc";
 beforeEach(() => {
   req = httpMocks.createRequest();
   res = httpMocks.createResponse();
@@ -56,6 +59,47 @@ describe("Product Controller create 테스트", () => {
     productModel.create.mockReturnValue(rejectedPromise);
     //실제는 몽고db가 알아서 쏴주나, 우리는 의존성을 떼기 위해 만듦
     await productController.createProduct(req, res, next);
+    expect(next).toBeCalledWith(errorMessage);
+  });
+});
+
+describe("Product Controller read 테스트", () => {
+  beforeEach(() => {
+    req.body = testProduct;
+    //테스트 데이터 임포트
+  });
+
+  it("product find 테스트", async () => {
+    productModel.find.mockReturnValue(testProduct);
+    expect(typeof productController.getProducts).toBe("function");
+    await productController.getProducts(req, res, next);
+    expect(productModel.find).toHaveBeenCalledWith({});
+    expect(res.statusCode).toBe(201);
+    expect(res._getJSONData()).toStrictEqual(testProduct);
+  });
+  it("product find 에러 테스트", async () => {
+    const errorMessage = { message: "에러났습니다" };
+
+    const rejectedPromise = Promise.reject(errorMessage);
+    productModel.find.mockReturnValue(rejectedPromise);
+    expect(typeof productController.getProducts).toBe("function");
+    await productController.getProducts(req, res, next);
+    expect(next).toBeCalledWith(errorMessage);
+  });
+
+  it("product findbyId 테스트", async () => {
+    req.params.productId = productId;
+    await productController.getProductsById(req, res, next);
+    expect(res.statusCode).toBe(201);
+    expect(productModel.findById).toBeCalledWith(productId);
+  });
+
+  it("product find 에러 테스트", async () => {
+    const errorMessage = { message: "에러났습니다" };
+    const rejectedPromise = Promise.reject(errorMessage);
+    productModel.findById.mockReturnValue(rejectedPromise);
+    expect(typeof productController.getProductsById).toBe("function");
+    await productController.getProductsById(req, res, next);
     expect(next).toBeCalledWith(errorMessage);
   });
 });
