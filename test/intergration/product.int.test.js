@@ -59,4 +59,12 @@ describe("Temp test", () => {
     );
     expect(response.statusCode).toBe(500);
   });
+  it("product findbyIdAndUpdate", async () => {
+    const response = await request(app)
+      .put("/api/products/" + productIdVariable._id)
+      .send({ name: "태진", description: "호호호" });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.updatedProduct.name).toBe("태진");
+    expect(response.body.updatedProduct.description).toBe("호호호");
+  });
 });

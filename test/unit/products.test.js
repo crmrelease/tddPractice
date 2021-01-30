@@ -6,6 +6,7 @@ const testProduct = require("../testData/new-product.json");
 productModel.create = jest.fn();
 productModel.find = jest.fn();
 productModel.findById = jest.fn();
+productModel.findByIdAndUpdate = jest.fn();
 
 //mock함수 생성
 let req, res, next;
@@ -95,12 +96,47 @@ describe("Product Controller read 테스트", () => {
     expect(productModel.findById).toBeCalledWith(productId);
   });
 
-  it("product find 에러 테스트", async () => {
+  it("product findbyId 에러 테스트", async () => {
     const errorMessage = { message: "에러났습니다" };
     const rejectedPromise = Promise.reject(errorMessage);
     productModel.findById.mockReturnValue(rejectedPromise);
     expect(typeof productController.getProductsById).toBe("function");
     await productController.getProductsById(req, res, next);
     expect(next).toBeCalledWith(errorMessage);
+  });
+
+  it("product findAndUpdate 테스트", async () => {
+    req.params.productId = productId;
+    req.body = { name: "태진", description: "ㅎㅎ" };
+    expect(typeof productController.getProductsByIdAndUpdate).toBe("function");
+    await productController.getProductsByIdAndUpdate(req, res, next);
+    expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      productId,
+      { name: "태진", description: "ㅎㅎ" },
+      { new: true }
+    );
+  });
+  it("product findAndUpdate 테스트 코드 전달여부", async () => {
+    req.params.productId = productId;
+    req.body = { name: "태진", description: "ㅎㅎ" };
+    productModel.findByIdAndUpdate.mockReturnValue(req.body);
+    await productController.getProductsByIdAndUpdate(req, res, next);
+    expect(res._isEndCalled()).toBeTruthy();
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData()).toStrictEqual;
+  });
+  it("product findAndUpdate 테스트 에러", async () => {
+    const errorMessage = { message: "에러났습니다" };
+    const rejectedPromise = Promise.reject(errorMessage);
+    productModel.findByIdAndUpdate.mockReturnValue(rejectedPromise);
+    await productController.getProductsByIdAndUpdate(req, res, next);
+    expect(next).toBeCalledWith(errorMessage);
+  });
+
+  it("product findAndUpdate 테스트 id가없을때", async () => {
+    productModel.findByIdAndUpdate.mockReturnValue(null);
+    await productController.getProductsByIdAndUpdate(req, res, next);
+    expect(res.statusCode).toBe(404);
+    //expect(res._isEndCalled()).toBeTruthy();
   });
 });
